@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # Charge les variables d'environnement depuis le fichier .env
+# Charge les variables d'environnement depuis le fichier .env
 
 DATABASE_URL = "postgresql://mathias:rootroot@localhost/gestion"
 

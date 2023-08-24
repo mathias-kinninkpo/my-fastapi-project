@@ -1,6 +1,7 @@
 from typing import List, Optional, Generic, TypeVar
 from pydantic import BaseModel , Field
 from pydantic.generics import GenericModel
+from models import Article
 
 T = TypeVar('T')
 
@@ -13,6 +14,9 @@ class ArticleSchema(BaseModel):
     description: Optional[str] = None
     author: Optional[str] = None
     is_public: Optional[bool] = None
+    created_at : Optional[T] = None
+    updated_at : Optional[T] = None
+    deleted_at : Optional[T] = None
 
     class Config:
         orm_mode = True
@@ -27,7 +31,7 @@ class RequestArticle(BaseModel):
 
 
 class Response(GenericModel, Generic[T]):
-    code: str
-    status: str
-    message: str
-    result: Optional[T]
+    code: Optional[str] = None
+    status: Optional[str] = None
+    message: Optional[str] = None
+    result: Optional[T] = None

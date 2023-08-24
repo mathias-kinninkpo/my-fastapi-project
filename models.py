@@ -1,8 +1,10 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
-
+from config import Base
+from pydantic import BaseModel
 Base = declarative_base()
+
 
 class Article(Base):
     __tablename__ = "articles"
@@ -16,4 +18,7 @@ class Article(Base):
     is_public = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+
+
+
+    
