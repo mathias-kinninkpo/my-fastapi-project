@@ -21,10 +21,7 @@ class ArticleSchemaBase(BaseModel):
 
 
 class ArticleSchema(ArticleSchemaBase):
-       
-     id : Optional[int] = None
-     
-     is_public: Optional[bool] = None
+    is_public: Optional[bool] = None
 
 class ArticleSchemaAll(ArticleSchemaBase):
        
@@ -39,12 +36,12 @@ class Request(GenericModel, Generic[T]):
     parameter: Optional[T] = Field(...)
 
 
-class RequestArticle(BaseModel):
-    parameter: ArticleSchema = Field(...)
+class RequestArticle(ArticleSchema):
+    pass
 
 
-class RequestArticleGet(BaseModel):
-    parameter: ArticleSchemaBase = Field(...)
+class RequestArticleGet(ArticleSchemaBase):
+    pass
 
 
 class Response(GenericModel, Generic[T]):
