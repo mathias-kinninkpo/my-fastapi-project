@@ -1,34 +1,49 @@
 from sqlalchemy.orm import Session
 from models import Article
-from schemas import ArticleSchema
+from schemas import ArticleSchemaAll, ArticleSchema
 from fastapi import HTTPException
+from datetime import datetime
 
 
-def get_article(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Article).offset(skip).limit(limit).all()
+def get_article(db: Session):
+    articles = db.query(Article).filter(Article.deleted_at == None).all()
+    return  [ArticleSchemaAll.from_orm(article) for article in articles]
+
+
+def get_public_article(db: Session):
+    articles = db.query(Article).filter((Article.deleted_at == None) & (Article.is_public == True)).all()
+    return  [ArticleSchemaAll.from_orm(article) for article in articles]
+
+
+def get_private_article(db: Session):
+    articles = db.query(Article).filter((Article.deleted_at == None) & (Article.is_public != True)).all()
+    return  [ArticleSchemaAll.from_orm(article) for article in articles]
+
 
 
 def get_article_by_id(db: Session, id: int):
-    return db.query(Article).filter(Article.id == id).first()
-
+    return db.query(Article).filter((Article.id == id ) & (Article.deleted_at == None)).first()
+    
+    
 
 def create_article(db: Session, article: ArticleSchema):
-    _article = Article(title=article.title, short_description=article.short_description, description= article.description, image=article.image, author=article.author, is_public=article.is_public)
+    _article = Article(title=article.title, short_description=article.short_description, description= article.description, image=article.image, author=article.author)
     db.add(_article)
     db.commit()
     db.refresh(_article)
-    return _article
+    return ArticleSchemaAll.from_orm(_article)
 
 
 def remove_article(db: Session, id: int):
     _article = get_article_by_id(db=db, id= id)
-
+    
     if _article is not None:
-       db.delete(_article)
+       _article.deleted_at = datetime.now()
        db.commit()
+       db.refresh(_article)
     else:
         raise HTTPException(status_code=404, detail="article not found")
-    return _article
+    return ArticleSchemaAll.from_orm(_article)
     
 
 
@@ -46,4 +61,4 @@ def update_article(db: Session, id: int, title: str, short_description : str, de
         db.refresh(_article)
     else:
         raise HTTPException(status_code=404, detail="article not found")
-    return _article
+    return ArticleSchemaAll.from_orm(_article)
