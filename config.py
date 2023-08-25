@@ -6,7 +6,7 @@ import os
 
 # Charge les variables d'environnement depuis le fichier .env
 
-DATABASE_URL = "postgres://mathias:AfdWCPQAH7J6bFsBo3YNRqU5r895G0cn@dpg-cjjoqgr37aks738econg-a/gestion_pjt0"
+DATABASE_URL = "postgresql://mathias:AfdWCPQAH7J6bFsBo3YNRqU5r895G0cn@dpg-cjjoqgr37aks738econg-a/gestion_pjt0"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush = False, bind=engine)
