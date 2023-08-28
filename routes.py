@@ -1,8 +1,15 @@
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, status
 from fastapi import Depends
 from config import SessionLocal
 from sqlalchemy.orm import Session
-from schemas import ArticleSchemaAll, Request, Response, RequestArticle, RequestArticleGet
+from schemas import (   ArticleSchemaAll, 
+                        Response, 
+                        RequestArticle, 
+                        RequestArticleGet, 
+                        UserSchema,
+                        UserCreate, 
+                        UserUpdate
+                    )
 
 import crud
 
@@ -16,6 +23,12 @@ def get_db():
     finally:
         db.close()
 
+
+
+
+
+
+########################################### Les routes pour les articles ##################################################
 
 @router.post("/articles")
 async def create_article_service(request: RequestArticleGet, db: Session = Depends(get_db)):
@@ -68,6 +81,85 @@ async def update_article(id: int , request: RequestArticle, db: Session = Depend
 async def delete_article(db: Session = Depends(get_db), id : int = None):
     crud.remove_article(db,id=id)
     return Response(status="Ok", code="200", message="Success delete data").dict(exclude_none=True)
+
+
+
+
+
+########################################### Les routes pour les utilisateurs ##################################################
+
+router1 = APIRouter()
+
+
+@router1.post("/register")
+async def register(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = crud.create_user(db, user)
+    _result = {'code': db_user.code}
+    if db_user:
+        return Response(status="Ok", code="200", message="Successfull regsitered user and email sent successfully", result = _result).dict(exclude_none=True)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="email or password already exists")
+
+
+@router1.post("/register/verify")
+async def register(email : str, code :str, db: Session = Depends(get_db)):
+    db_user = crud.register_verify(email=email, code=code, db=db)
+    if db_user:
+        return Response(status="Ok", code="200", message="Successfull regsitered user").dict(exclude_none=True)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="L'email ou le username entré existe déjà")
+
+
+@router1.get("/users/{id}")
+async def read_user(id: int, db: Session = Depends(get_db)):
+    _user = crud.get_user(db, id)
+    if not _user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return Response(status="Ok", code="200", message="Succes fetch profile", result = UserSchema.from_orm(_user))
+
+
+@router1.patch("/users/{id}")
+async def update_profile(user : UserUpdate, id: int, db : Session = Depends(get_db)):
+    _user = crud.update_profile(db,user_id = id, updated_user = user)
+    if _user is None:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found or credentials already exist")
+    else:
+        return  Response(status="Ok", code="200", message="Profile updated successfull").dict(exclude_none=True)
+
+
+
+@router1.post("/login")
+async def login(email: str, password: str, db: Session = Depends(get_db)):
+    user = crud.authenticate_user(db, email = email, password = password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    return  Response(status="Ok", code="200", message="Authentification verified").dict(exclude_none=True)
+
+
+# @router1.get("/profile/{id}")
+# async def profile(id: int, db : Session = Depends(get_db)):
+#     _user = crud.get_user(db,id = id )
+#     return Response(status="Ok", code="200", message="Succes fetch profile", result = UserSchema.from_orm(_user))
+
+
+
+@router1.post("/password/forgot")
+async def login(email: str, db: Session = Depends(get_db)):
+    user = crud.password_forgot(db, email)
+    _result = {'code': user.code}
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    return  Response(status="Ok", code="200", message="email sent", result = _result).dict(exclude_none=True)
+
+
+@router1.post("/password/forgot/verify")
+async def login(email: str, code: str, db: Session = Depends(get_db)):
+    user = crud.password_forgot_verify(db, email, code)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    return  Response(status="Ok", code="200", message="Authentification verified").dict(exclude_none=True)
+
+
+
+
 
 
 
