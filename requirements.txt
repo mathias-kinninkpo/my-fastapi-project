@@ -23,3 +23,6 @@ uvicorn
 uvloop
 watchfiles
 websockets
+passlib
+secure-smtplib
+
