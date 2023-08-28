@@ -22,4 +22,22 @@ class Article(Base):
 
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    firstname = Column(String(255))
+    lastname = Column(String(255))
+    username = Column(String(255), unique=True)
+    email = Column(String(255), unique=True, index=True)
+    password = Column(String(255))
+    image = Column(String(255))
+    code = Column(String(255))
+    phone = Column(String(255), unique=True)
+    email_verified_at = Column(DateTime(timezone=True))
+    # is_active = Column(Boolean, default=True)
+    # updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+
     
