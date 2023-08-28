@@ -6,7 +6,7 @@ from datetime import datetime
 
 T = TypeVar('T')
 
-
+#################################################### les shemas pour les articles #################################################
 class ArticleSchemaBase(BaseModel):
     title: Optional[str] = None
     image: Optional[str] = None
@@ -14,7 +14,6 @@ class ArticleSchemaBase(BaseModel):
     description: Optional[str] = None
     author: Optional[str] = None
    
-
     class Config:
         orm_mode = True
         from_attributes = True
@@ -49,3 +48,30 @@ class Response(GenericModel, Generic[T]):
     status: Optional[str] = None
     message: Optional[str] = None
     result: Optional[T] = None
+
+#################################################### les shemas pour les Users #################################################
+
+
+class UserBase(BaseModel):
+    firstname: str
+    lastname: str
+    username: str
+    email: str
+    image: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(UserBase):
+    password: str
+
+class UserSchema(UserBase):
+    id: int
+    code: Optional[str] = None
+    email_verified_at: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
