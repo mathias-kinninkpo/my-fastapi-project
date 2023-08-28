@@ -142,7 +142,7 @@ async def login(email: str, password: str, db: Session = Depends(get_db)):
 
 
 @router1.post("/password/forgot")
-async def login(email: str, db: Session = Depends(get_db)):
+async def forgot_password(email: str, db: Session = Depends(get_db)):
     user = crud.password_forgot(db, email)
     _result = {'code': user.code}
     if not user:
@@ -151,7 +151,7 @@ async def login(email: str, db: Session = Depends(get_db)):
 
 
 @router1.post("/password/forgot/verify")
-async def login(email: str, code: str, db: Session = Depends(get_db)):
+async def verify_forgot_password(email: str, code: str, db: Session = Depends(get_db)):
     user = crud.password_forgot_verify(db, email, code)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
