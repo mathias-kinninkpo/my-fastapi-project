@@ -10,6 +10,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import random
 import string
+from functionstools import *
 
 
 
@@ -44,6 +45,7 @@ def send_verification_code_email(email: str, code: str, message: str):
         return True
     except:
         return False
+    
 
 
 
@@ -109,26 +111,38 @@ def update_article(db: Session, id: int, title: str, short_description : str, de
     return ArticleSchemaAll.from_orm(_article)
 
 
+def get_articles_by_user(db: Session, user_id: int):
+    user = get_user(db, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    articles =  db.query(Article).filter(Article.author == user.username, Article.deleted_at == None).all()
+    if articles is None:
+        return None
+    return [ArticleSchemaAll.from_orm(article) for article in articles]
+
+
+
+
 ################################ les routes pour les utilisateurs #################################
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
 
 def create_user(db: Session, user: UserCreate):
-    hashed_password = pwd_context.hash(user.password)
-    if send_verification_code_email(user.email, user.code, "Le code de verification pour la creation de votre compte est "):
-        _user = User(   firstname = user.firstname,
-                        lastname = user.lastname,
-                        email = user.email,
-                        image = user.image,
-                        phone = user.phone,
-                        username = user.username,
-                        password=hashed_password, 
-                        code = generate_verification_code()
-                    )
+    hashed_password = get_password_hash(user.password)
+    _user = User(   firstname = user.firstname,
+                    lastname = user.lastname,
+                    email = user.email,
+                    image = user.image,
+                    phone = user.phone,
+                    username = user.username,
+                    password=hashed_password, 
+                    code = generate_verification_code()
+                )
+    if send_verification_code_email(user.email, _user.code, "Le code de verification pour la creation de votre compte est "):
         try:
             db.add(_user)
             db.commit()
@@ -140,17 +154,18 @@ def create_user(db: Session, user: UserCreate):
     return None
 
 
-def authenticate_user(db: Session, email: str, password: str):
-    _user = get_user_by_email(db, email)
-    if not _user is None:
+def authenticate_user(db: Session, email: str, password: str) -> User:
+    user = get_user_by_email(db, email)
+    if user is not None:
         try:
-            # hashed_password = pwd_context.hash(password)
-            if pwd_context.verify(password, _user.password, schemes=["bcrypt"]):
-                return _user
-            return None
-        except:
-            return None
-        
+            if verify_password(password, user.password):
+                access_token_expires = timedelta(days=ACCESS_TOKEN_EXPIRE_MINUTES)
+                access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+                return {"access_token": access_token, "token_type": "bearer"}
+                # return user
+        except Exception as e:
+            print("Error verifying password:", e)
+    
     return None
    
 
@@ -182,17 +197,20 @@ def password_forgot(db: Session, email: str):
         new_code = generate_verification_code()
         user.code = new_code
         db.commit()
+        db.refresh(user)
         if send_verification_code_email(email, new_code, "Le code de verification pour changer votre mot de passe est "):
             return user
     return None
 
 # Fonction pour vérifier le code de vérification lors de la réinitialisation de mot de passe
 def password_forgot_verify(db: Session, email: str, code: str):
-    user = db.query(User).filter(User.email == email, User.code == code).first()
+    user = get_user_by_email(db, email)
     if user:
-        user.email_verified_at = datetime.now()
-        db.commit()
-        db.refresh(user)
+        if user.code == code:
+            user.email_verified_at = datetime.now()
+            db.commit()
+            db.refresh(user)
+            return user
     return None
 
 
@@ -202,8 +220,9 @@ def update_profile(db: Session, user_id: int, updated_user: UserUpdate):
     if user:
         try:
             for field, value in updated_user.dict().items():
-                if field == 'password':
-                    hashed_password = pwd_context.hash(user.password)
+                if str(field) == 'password':
+                    hashed_password = get_password_hash(updated_user.password)
+                    
                     setattr(user, field, hashed_password)
                 else:
                     setattr(user, field, value)
