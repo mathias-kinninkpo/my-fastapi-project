@@ -48,6 +48,7 @@ class Response(GenericModel, Generic[T]):
     status: Optional[str] = None
     message: Optional[str] = None
     result: Optional[T] = None
+    token : Optional[str] = None
 
 #################################################### les shemas pour les Users #################################################
 
