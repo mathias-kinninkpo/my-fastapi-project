@@ -25,4 +25,6 @@ watchfiles
 websockets
 passlib
 secure-smtplib
-
+jose
+jwt
+pyjwt
