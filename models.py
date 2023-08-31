@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from config import Base
-from pydantic import BaseModel
 Base = declarative_base()
 
 

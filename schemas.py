@@ -31,8 +31,8 @@ class ArticleSchemaAll(ArticleSchemaBase):
      deleted_at : Optional[T] = None
 
 
-class Request(GenericModel, Generic[T]):
-    parameter: Optional[T] = Field(...)
+# class Request(GenericModel, Generic[T]):
+#     parameter: Optional[T] = Field(...)
 
 
 class RequestArticle(ArticleSchema):
